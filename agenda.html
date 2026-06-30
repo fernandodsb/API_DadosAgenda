@@ -1309,7 +1309,8 @@
        window.onload = async () => {
            startSessionCheckTimer();
            await fetchData();
-           dataRefreshInterval = setInterval(fetchData, 5 * 60 * 1000);
+           // Atualiza os dados a cada 15 segundos para manter a fila sincronizada
+           dataRefreshInterval = setInterval(fetchData, 15 * 1000);
        };
 
         window.addEventListener('beforeunload', () => {
