@@ -585,29 +585,47 @@
        document.addEventListener('touchstart', renewSession);
 
        function applyFiltersAndRender() {
-           const searchInput = document.getElementById('event-search');
-           const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const searchInput = document.getElementById('event-search');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
-           let eventsToDisplay = allEvents.filter(item => item.dados_atualizados !== true && item.status_evento !== 'C');
+            let eventsToDisplay = allEvents.filter(item => item.dados_atualizados !== true && item.status_evento !== 'C');
 
-            if (authData.userType === 'recepcionista') {
-                // Recepcionista: exibe apenas agendamentos de Goiânia que ainda não chegaram
+            const userLocal = (authData.local || '').toLowerCase();
+            const isUserGoiania = userLocal.includes('goi') || userLocal.includes('goiania');
+            const isAdmin = authData.userType === 'admin';
+
+            // 1. Restrição de Localização (não se aplica a Admins)
+            if (!isAdmin) {
                 eventsToDisplay = eventsToDisplay.filter(item => {
-                    const loc = (item.local_evento || '').toLowerCase();
-                    const isGoiania = loc.includes('goi') || loc.includes('goiania');
+                    const itemLoc = (item.local_evento || '').toLowerCase();
+                    if (isUserGoiania) {
+                        return itemLoc.includes('goi') || itemLoc.includes('goiania');
+                    } else {
+                        // Compara tirando acentos para maior precisão (ex: anapolis vs anápolis)
+                        const cleanUserLocal = userLocal.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        const cleanItemLoc = itemLoc.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        return cleanItemLoc.includes(cleanUserLocal);
+                    }
+                });
+            }
+
+            // 2. Filtros de Fluxo (Fila / Recepção)
+            if (authData.userType === 'recepcionista') {
+                // Recepcionista (Goiânia): exibe apenas agendamentos de Goiânia que ainda não chegaram
+                eventsToDisplay = eventsToDisplay.filter(item => {
                     const isNotArrived = !item.status_recepcao || item.status_recepcao === 'agendado';
-                    return isGoiania && isNotArrived;
+                    return isNotArrived;
                 });
             } else {
                 // Atendentes / Admins:
-                // Para Goiânia, exibe apenas os agendamentos que o próprio usuário estiver atendendo.
-                // Outros locais (seccionais) são exibidos normalmente de acordo com a agenda.
                 eventsToDisplay = eventsToDisplay.filter(item => {
-                    const loc = (item.local_evento || '').toLowerCase();
-                    const isGoiania = loc.includes('goi') || loc.includes('goiania');
+                    const itemLoc = (item.local_evento || '').toLowerCase();
+                    const isGoiania = itemLoc.includes('goi') || itemLoc.includes('goiania');
                     if (isGoiania) {
+                        // Para Goiânia: exibe apenas se estiver em atendimento ativo por este usuário
                         return item.status_recepcao === 'atendimento' && item.atendido_por === authData.username;
                     }
+                    // Para outras seccionais (Ex: Anápolis): exibe normalmente todos os agendamentos pendentes
                     return true;
                 });
             }
@@ -770,6 +788,16 @@
             const queueSection = document.getElementById('sidebar-queue-section');
             const queueList = document.getElementById('sidebar-queue-list');
             if (!queueSection || !queueList) return;
+
+            const userLocal = (authData.local || '').toLowerCase();
+            const isUserGoiania = userLocal.includes('goi') || userLocal.includes('goiania');
+            const isAdmin = authData.userType === 'admin';
+
+            // Só exibe a seção de fila na barra lateral se for da Sede (Goiânia) ou Admin
+            if (!isUserGoiania && !isAdmin) {
+                queueSection.style.display = 'none';
+                return;
+            }
             
             const queueEvents = allEvents.filter(item => {
                 const isGoiania = (item.local_evento || '').toLowerCase().includes('goi') || (item.local_evento || '').toLowerCase().includes('goiania');
