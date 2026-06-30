@@ -595,7 +595,13 @@
             const isAdmin = authData.userType === 'admin';
 
             // 1. Restrição de Localização (não se aplica a Admins)
-            if (!isAdmin) {
+            if (authData.userType === 'recepcionista') {
+                // Recepcionista é restrita exclusivamente a Goiânia
+                eventsToDisplay = eventsToDisplay.filter(item => {
+                    const itemLoc = (item.local_evento || '').toLowerCase();
+                    return itemLoc.includes('goi') || itemLoc.includes('goiania');
+                });
+            } else if (!isAdmin) {
                 eventsToDisplay = eventsToDisplay.filter(item => {
                     const itemLoc = (item.local_evento || '').toLowerCase();
                     if (isUserGoiania) {
