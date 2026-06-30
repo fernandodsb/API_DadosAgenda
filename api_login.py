@@ -62,7 +62,7 @@ def login():
         # A comparação é feita usando LOWER() em ambos os lados ou LOWER() no lado do BD e passando o input em minúsculas.
         # Vamos usar LOWER() no lado do BD e passar o input em minúsculas.
         select_sql = """
-        SELECT senha, status, tipo_usuario, pode_criar_usuario, usuario 
+        SELECT senha, status, tipo_usuario, pode_criar_usuario, usuario, local 
         FROM usuarios_sistema 
         WHERE LOWER(usuario) = %s;
         """
@@ -77,8 +77,9 @@ def login():
             tipo_usuario_db = user_record[2]
             pode_criar_usuario_db = user_record[3]
             usuario_db_cased = user_record[4] # Nome de usuário com o case original do banco
+            local_db = user_record[5]
 
-            print(f"Usuário encontrado no BD (case original: '{usuario_db_cased}'). Status Ativo: {status_ativo}, Tipo: {tipo_usuario_db}, Pode Criar Usuário: {pode_criar_usuario_db}.")
+            print(f"Usuário encontrado no BD (case original: '{usuario_db_cased}'). Status Ativo: {status_ativo}, Tipo: {tipo_usuario_db}, Pode Criar Usuário: {pode_criar_usuario_db}, Local: {local_db}.")
 
             if senha_hash_armazenada and bcrypt.checkpw(senha_fornecida.encode('utf-8'), senha_hash_armazenada.encode('utf-8')):
                 print("Senha corresponde.")
@@ -91,7 +92,8 @@ def login():
                         "authenticated": True,
                         "message": "Login bem-sucedido!",
                         "userType": tipo_usuario_db,
-                        "pode_criar_usuario": pode_criar_usuario_db
+                        "pode_criar_usuario": pode_criar_usuario_db,
+                        "local": local_db
                         # "username_db": usuario_db_cased # Opcional: se o frontend precisar do nome exato do BD
                     }), 200
                 else:

@@ -71,6 +71,7 @@ def criar_usuario():
     senha_texto_puro = data.get('senha')
     tipo_usuario = data.get('tipo_usuario', 'padrao')
     pode_criar = data.get('pode_criar_usuario', False)
+    local = data.get('local', 'Goiânia')
 
     if not all([nome, novo_usuario_input, senha_texto_puro]):
         return jsonify({"erro": "Campos nome, usuário e senha são obrigatórios"}), 400
@@ -106,10 +107,10 @@ def criar_usuario():
 
         # Insere o novo_usuario_input com o case original fornecido pelo usuário
         insert_sql = """
-        INSERT INTO usuarios_sistema (nome, usuario, senha, tipo_usuario, pode_criar_usuario)
-        VALUES (%s, %s, %s, %s, %s) RETURNING id;
+        INSERT INTO usuarios_sistema (nome, usuario, senha, tipo_usuario, pode_criar_usuario, local)
+        VALUES (%s, %s, %s, %s, %s, %s) RETURNING id;
         """
-        cursor.execute(insert_sql, (nome, novo_usuario_input, senha_hasheada, tipo_usuario, pode_criar))
+        cursor.execute(insert_sql, (nome, novo_usuario_input, senha_hasheada, tipo_usuario, pode_criar, local))
         new_user_id = cursor.fetchone()[0]
         conn.commit()
         print(f"Usuário '{novo_usuario_input}' (ID: {new_user_id}) criado com sucesso.")
@@ -141,14 +142,15 @@ def listar_usuarios():
             return jsonify({"erro": "Erro interno do servidor ao conectar ao BD para listar usuários."}), 500
 
         cursor.execute(
-            "SELECT id, nome, usuario, tipo_usuario, status, pode_criar_usuario, data_criacao FROM usuarios_sistema ORDER BY nome")
+            "SELECT id, nome, usuario, tipo_usuario, status, pode_criar_usuario, data_criacao, local FROM usuarios_sistema ORDER BY nome")
         usuarios = []
         for row in cursor.fetchall():
             usuarios.append({
                 "id": row[0], "nome": row[1], "usuario": row[2],  # 'usuario' aqui é o case original do BD
                 "tipo_usuario": row[3], "status": row[4],
                 "pode_criar_usuario": row[5],
-                "data_criacao": row[6].isoformat() if row[6] else None
+                "data_criacao": row[6].isoformat() if row[6] else None,
+                "local": row[7]
             })
         return jsonify(usuarios), 200
     except Error as e:
@@ -177,11 +179,12 @@ def alterar_usuario(user_id):
     tipo_usuario = data.get('tipo_usuario')
     status = data.get('status')  # boolean
     pode_criar = data.get('pode_criar_usuario')  # boolean
+    local = data.get('local', 'Goiânia')
     nova_senha_texto_puro = data.get('nova_senha')  # Opcional
 
-    if nome is None or tipo_usuario is None or status is None or pode_criar is None:
+    if nome is None or tipo_usuario is None or status is None or pode_criar is None or local is None:
         return jsonify(
-            {"erro": "Campos nome, tipo_usuario, status e pode_criar_usuario são obrigatórios para atualização."}), 400
+            {"erro": "Campos nome, tipo_usuario, status, pode_criar_usuario e local são obrigatórios para atualização."}), 400
 
     conn, cursor = None, None
     try:
@@ -190,8 +193,8 @@ def alterar_usuario(user_id):
             print(f"Erro ao alterar usuário {user_id}: Falha ao conectar ao BD.")
             return jsonify({"erro": "Erro interno do servidor ao conectar ao BD para alterar usuário."}), 500
 
-        set_clauses = ["nome = %s", "tipo_usuario = %s", "status = %s", "pode_criar_usuario = %s"]
-        params = [nome, tipo_usuario, status, pode_criar]
+        set_clauses = ["nome = %s", "tipo_usuario = %s", "status = %s", "pode_criar_usuario = %s", "local = %s"]
+        params = [nome, tipo_usuario, status, pode_criar, local]
 
         if nova_senha_texto_puro:
             nova_senha_hasheada = bcrypt.hashpw(nova_senha_texto_puro.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')

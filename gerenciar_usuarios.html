@@ -160,6 +160,14 @@
           <option value="admin">Admin</option>
           <option value="recepcionista">Recepcionista</option>
         </select>
+        <label for="createLocal">Local/Seccional:</label>
+        <select id="createLocal">
+          <option value="Goiânia">Goiânia (Sede)</option>
+          <option value="Anápolis">Anápolis</option>
+          <option value="Luziânia">Luziânia</option>
+          <option value="Rio Verde">Rio Verde</option>
+          <option value="Uruaçu">Uruaçu</option>
+        </select>
         <label for="createPodeCriar">
           <input type="checkbox" id="createPodeCriar"> Pode criar/gerenciar outros usuários?
         </label>
@@ -183,6 +191,14 @@
           <option value="admin">Admin</option>
           <option value="recepcionista">Recepcionista</option>
         </select>
+        <label for="editLocal">Local/Seccional:</label>
+        <select id="editLocal">
+          <option value="Goiânia">Goiânia (Sede)</option>
+          <option value="Anápolis">Anápolis</option>
+          <option value="Luziânia">Luziânia</option>
+          <option value="Rio Verde">Rio Verde</option>
+          <option value="Uruaçu">Uruaçu</option>
+        </select>
         <label for="editStatus">Status:</label>
         <select id="editStatus">
           <option value="true">Ativo</option>
@@ -205,6 +221,7 @@
             <th>Nome</th>
             <th>Usuário</th>
             <th>Tipo</th>
+            <th>Local</th>
             <th>Status</th>
             <th>Pode Criar?</th>
             <th>Ações</th>
@@ -299,9 +316,10 @@
                         <td>${user.nome}</td>
                         <td>${user.usuario}</td>
                         <td>${user.tipo_usuario}</td>
+                        <td>${user.local || 'Goiânia'}</td>
                         <td>${user.status ? 'Ativo' : 'Inativo'}</td>
                         <td>${user.pode_criar_usuario ? 'Sim' : 'Não'}</td>
-                        <td><button onclick="prepareEditUser(${user.id}, '${user.nome}', '${user.usuario}', '${user.tipo_usuario}', ${user.status}, ${user.pode_criar_usuario})">Alterar</button></td>
+                        <td><button onclick="prepareEditUser(${user.id}, '${user.nome}', '${user.usuario}', '${user.tipo_usuario}', ${user.status}, ${user.pode_criar_usuario}, '${user.local || 'Goiânia'}')">Alterar</button></td>
                     `;
                 });
             } catch (error) {
@@ -317,7 +335,8 @@
                 usuario: document.getElementById('createUsuario').value,
                 senha: document.getElementById('createSenha').value,
                 tipo_usuario: createTipoUsuarioSelect.value,
-                pode_criar_usuario: createPodeCriarCheckbox.checked
+                pode_criar_usuario: createPodeCriarCheckbox.checked,
+                local: document.getElementById('createLocal').value
             };
             try {
                 const response = await fetch('/api/gestao_usuarios/usuarios', {
@@ -336,11 +355,12 @@
             }
         });
 
-        window.prepareEditUser = function(id, nome, usuario, tipo, status, podeCriar) {
+        window.prepareEditUser = function(id, nome, usuario, tipo, status, podeCriar, local) {
             document.getElementById('editUserId').value = id;
             document.getElementById('editNome').value = nome;
             document.getElementById('editUsuarioView').value = usuario;
             editTipoUsuarioSelect.value = tipo;
+            document.getElementById('editLocal').value = local || 'Goiânia';
             document.getElementById('editStatus').value = status.toString(); // Popula o status
             editPodeCriarCheckbox.checked = podeCriar;
             document.getElementById('editNovaSenha').value = '';
@@ -368,7 +388,8 @@
                 nome: document.getElementById('editNome').value,
                 tipo_usuario: editTipoUsuarioSelect.value,
                 status: document.getElementById('editStatus').value === 'true', // Envia o status
-                pode_criar_usuario: editPodeCriarCheckbox.checked
+                pode_criar_usuario: editPodeCriarCheckbox.checked,
+                local: document.getElementById('editLocal').value
             };
             const novaSenha = document.getElementById('editNovaSenha').value;
             if (novaSenha) {

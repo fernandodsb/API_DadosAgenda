@@ -196,6 +196,7 @@
                         username: username,
                         userType: data.userType,
                         pode_criar_usuario: data.pode_criar_usuario,
+                        local: data.local || 'Goiânia',
                         expireTime: Date.now() + (10 * 60 * 1000) // 10 minutos
                     };
                     sessionStorage.setItem('authData', JSON.stringify(authDataToStore));
