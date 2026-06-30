@@ -175,6 +175,21 @@
                box-sizing: border-box;
             }
             #sidebar.open { transform: translateX(0); }
+
+            /* No desktop, mantém o sidebar esquerdo sempre visível */
+            @media (min-width: 992px) {
+                #sidebar {
+                    transform: translateX(0);
+                    padding-top: 80px;
+                    box-shadow: 1px 0 5px rgba(0,0,0,0.1);
+                }
+                body {
+                    padding-left: 250px;
+                }
+                #hamburger-btn {
+                    display: none;
+                }
+            }
             #sidebar h3 { color: #0056b3; padding: 0 20px 10px; margin-top: 0; border-bottom: 1px solid #eee; }
             #sidebar ul { list-style: none; padding: 0; margin: 0; }
             #sidebar ul li a { display: block; padding: 12px 20px; color: #333; text-decoration: none; border-bottom: 1px solid #eee; transition: background-color 0.2s ease, color 0.2s ease; }
@@ -439,15 +454,25 @@
     </div>
 
     <div id="sidebar">
-        <h3>Locais</h3>
-        <ul id="sidebar-locations">
+        <ul id="sidebar-admin-links" style="list-style: none; padding: 0; margin: 0; margin-bottom: 20px;">
             <li id="sidebar-admin-link" style="display:none;">
-                <a href="relatorios.html" style="background-color: #fff3cd; color: #664d03; font-weight: bold;">Painel Administrativo</a>
+                <a href="relatorios.html" style="background-color: #fff3cd; color: #664d03; font-weight: bold; display: block; padding: 12px 20px; text-decoration: none; border-bottom: 1px solid #eee;">Painel Administrativo</a>
             </li>
              <li id="sidebar-gerenciar-usuarios-link" style="display:none;">
-                <a href="gerenciar_usuarios.html" style="background-color: #d1e7dd; color: #0f5132; font-weight: bold;">Gerenciar Usuários</a>
+                <a href="gerenciar_usuarios.html" style="background-color: #d1e7dd; color: #0f5132; font-weight: bold; display: block; padding: 12px 20px; text-decoration: none; border-bottom: 1px solid #eee;">Gerenciar Usuários</a>
             </li>
         </ul>
+        <h3>Locais</h3>
+        <ul id="sidebar-locations">
+        </ul>
+        
+        <!-- Fila de Atendimento Goiânia -->
+        <div id="sidebar-queue-section" style="margin-top: 30px; padding: 0 20px; display: none;">
+            <h3 style="padding: 0 0 10px 0; border-bottom: 1px solid #eee; margin-bottom: 15px; margin-left: 0; font-size: 1.1em; color: #0056b3;">Fila (Goiânia)</h3>
+            <ul id="sidebar-queue-list" style="list-style: none; padding: 0; margin: 0;">
+                <!-- Preenchido dinamicamente via JS -->
+            </ul>
+        </div>
     </div>
 
     <div class="scrim"></div>
@@ -659,6 +684,7 @@
 
            const locations = Object.keys(groupedByLocation).sort();
            renderSidebar(locations);
+           renderQueue();
 
            if (locations.length === 0) {
                 const searchTerm = document.getElementById('event-search')?.value || '';
@@ -685,13 +711,7 @@
        function renderSidebar(locaisFiltrados) {
            const ul = document.getElementById('sidebar-locations');
            if (!ul) return;
-           const adminLinkLi = document.getElementById('sidebar-admin-link');
-           const gerenciarUsuariosLi = document.getElementById('sidebar-gerenciar-usuarios-link');
-           let adminLinkWasVisible = adminLinkLi && adminLinkLi.style.display !== 'none';
-           let gerenciarUsuariosLinkWasVisible = gerenciarUsuariosLi && gerenciarUsuariosLi.style.display !== 'none';
            ul.innerHTML = '';
-           if (adminLinkWasVisible && adminLinkLi) { ul.appendChild(adminLinkLi); }
-           if (gerenciarUsuariosLinkWasVisible && gerenciarUsuariosLi) { ul.appendChild(gerenciarUsuariosLi); }
            const liAll = document.createElement('li');
            const aAll = document.createElement('a');
            aAll.href = "#";
@@ -733,7 +753,82 @@
                li.appendChild(a);
                ul.appendChild(li);
            });
-       }
+        }
+
+        function renderQueue() {
+            const queueSection = document.getElementById('sidebar-queue-section');
+            const queueList = document.getElementById('sidebar-queue-list');
+            if (!queueSection || !queueList) return;
+            
+            const queueEvents = allEvents.filter(item => {
+                const isGoiania = (item.local_evento || '').toLowerCase().includes('goi') || (item.local_evento || '').toLowerCase().includes('goiania');
+                return isGoiania && item.status_recepcao === 'chegou' && item.dados_atualizados !== true;
+            });
+            
+            queueEvents.sort((a, b) => new Date(a.chegada_em || a.data_evento) - new Date(b.chegada_em || b.data_evento));
+            
+            queueList.innerHTML = '';
+            
+            if (queueEvents.length === 0) {
+                queueList.innerHTML = '<li style="font-size:0.85em; color:#888; text-align:center; padding:10px;">Fila vazia</li>';
+            } else {
+                queueEvents.forEach(item => {
+                    const li = document.createElement('li');
+                    li.style.background = 'white';
+                    li.style.border = '1px solid #ddd';
+                    li.style.borderRadius = '6px';
+                    li.style.padding = '10px';
+                    li.style.marginBottom = '10px';
+                    li.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)';
+                    
+                    const arrivalTime = item.chegada_em ? new Date(item.chegada_em).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : '--:--';
+                    
+                    let atendenteBtnHTML = '';
+                    if (authData.userType !== 'recepcionista') {
+                        atendenteBtnHTML = `<button class="recepcao-btn recepcao-btn-atender" style="width: 100%; margin-top: 8px; margin-left: 0; padding: 6px 10px; font-size: 0.85em;" id="queue-btn-atender-${item.google_event_id}">Atender</button>`;
+                    }
+                    
+                    li.innerHTML = `
+                        <div style="font-weight: bold; font-size: 0.9em; color: #333; word-break: break-word;">${item.nome_farmaceutico || 'Não Informado'}</div>
+                        <div style="font-size: 0.8em; color: #666; margin-top: 4px;">Chegou às ${arrivalTime}</div>
+                        <div style="font-size: 0.8em; color: #0056b3; margin-top: 2px;">Serviço: ${item.servico_agendado || 'Geral'}</div>
+                        ${atendenteBtnHTML}
+                    `;
+                    
+                    if (authData.userType !== 'recepcionista') {
+                        const btnAtender = li.querySelector(`#queue-btn-atender-${item.google_event_id}`);
+                        if (btnAtender) {
+                            btnAtender.addEventListener('click', async () => {
+                                btnAtender.disabled = true;
+                                btnAtender.textContent = 'Iniciando...';
+                                try {
+                                    const resp = await fetch(`/api/recepcao/atender/${item.google_event_id}`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ atendido_por: authData.username })
+                                    });
+                                    if (resp.ok) {
+                                        await fetchData();
+                                    } else {
+                                        alert('Erro ao iniciar atendimento.');
+                                        btnAtender.disabled = false;
+                                        btnAtender.textContent = 'Atender';
+                                    }
+                                } catch (err) {
+                                    console.error(err);
+                                    alert('Erro de rede.');
+                                    btnAtender.disabled = false;
+                                    btnAtender.textContent = 'Atender';
+                                }
+                            });
+                        }
+                    }
+                    queueList.appendChild(li);
+                });
+            }
+            
+            queueSection.style.display = 'block';
+        }
 
         function createEventElement(item) {
             const eventWrapperDiv = document.createElement('div');
