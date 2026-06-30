@@ -588,18 +588,29 @@
            const searchInput = document.getElementById('event-search');
            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
 
-           let eventsToDisplay = allEvents.filter(item =>
-               item.dados_atualizados !== true &&
-               item.status_evento !== 'C'
-           );
+           let eventsToDisplay = allEvents.filter(item => item.dados_atualizados !== true && item.status_evento !== 'C');
 
-           // Se for recepcionista, exibe apenas Goiânia
-           if (authData.userType === 'recepcionista') {
-               eventsToDisplay = eventsToDisplay.filter(item => {
-                   const loc = (item.local_evento || '').toLowerCase();
-                   return loc.includes('goi') || loc.includes('goiania');
-               });
-           }
+            if (authData.userType === 'recepcionista') {
+                // Recepcionista: exibe apenas agendamentos de Goiânia que ainda não chegaram
+                eventsToDisplay = eventsToDisplay.filter(item => {
+                    const loc = (item.local_evento || '').toLowerCase();
+                    const isGoiania = loc.includes('goi') || loc.includes('goiania');
+                    const isNotArrived = !item.status_recepcao || item.status_recepcao === 'agendado';
+                    return isGoiania && isNotArrived;
+                });
+            } else {
+                // Atendentes / Admins:
+                // Para Goiânia, exibe apenas os agendamentos que o próprio usuário estiver atendendo.
+                // Outros locais (seccionais) são exibidos normalmente de acordo com a agenda.
+                eventsToDisplay = eventsToDisplay.filter(item => {
+                    const loc = (item.local_evento || '').toLowerCase();
+                    const isGoiania = loc.includes('goi') || loc.includes('goiania');
+                    if (isGoiania) {
+                        return item.status_recepcao === 'atendimento' && item.atendido_por === authData.username;
+                    }
+                    return true;
+                });
+            }
 
            if (searchTerm) {
                eventsToDisplay = eventsToDisplay.filter(item => {
