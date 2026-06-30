@@ -1,8 +1,9 @@
 # api_recepcao.py - Blueprint para Gestão de Recepção e Fila de Atendimento (Goiânia)
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, Response
 from flask_cors import CORS
 import datetime
 import sys
+import select
 
 # Importa o módulo de banco de dados
 try:
@@ -138,3 +139,33 @@ def finalizar_atendimento(event_id):
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+# 4. SSE Stream para tempo real (LISTEN/NOTIFY)
+@recepcao_bp.route('/stream')
+def stream():
+    def event_stream():
+        import psycopg2
+        import psycopg2.extensions
+        conn, cursor = None, None
+        try:
+            conn, cursor = database.connect_db()
+            conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+            cursor.execute("LISTEN agenda_change;")
+            yield "data: {\"type\": \"connected\"}\n\n"
+            while True:
+                if select.select([conn], [], [], 25.0) == ([], [], []):
+                    yield ": ping\n\n"
+                else:
+                    conn.poll()
+                    while conn.notifies:
+                        notify = conn.notifies.pop(0)
+                        yield f"data: {{\"type\": \"update\", \"payload\": \"{notify.payload}\"}}\n\n"
+        except GeneratorExit:
+            print("SSE stream: cliente desconectado.")
+        except Exception as err:
+            print(f"Erro no SSE stream: {err}")
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
+            
+    return Response(event_stream(), mimetype='text/event-stream')

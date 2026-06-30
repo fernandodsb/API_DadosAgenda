@@ -1312,11 +1312,37 @@
            }
        });
 
+        function startSSEConnection() {
+            if (typeof(EventSource) !== "undefined") {
+                console.log("Iniciando conexão SSE para tempo real...");
+                const sse = new EventSource('/api/recepcao/stream');
+                
+                sse.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'update') {
+                            console.log("Notificação recebida: atualizando dados...");
+                            fetchData();
+                        }
+                    } catch (e) {
+                        // Ignora pings ou formatos não-JSON
+                    }
+                };
+                
+                sse.onerror = function(err) {
+                    console.warn("Conexão SSE oscilou. O navegador tentará reconectar automaticamente.");
+                };
+            } else {
+                console.warn("Seu navegador não suporta Server-Sent Events.");
+            }
+        }
+
        window.onload = async () => {
            startSessionCheckTimer();
            await fetchData();
-           // Atualiza os dados a cada 15 segundos para manter a fila sincronizada
-           dataRefreshInterval = setInterval(fetchData, 15 * 1000);
+           startSSEConnection();
+           // Polling de fallback a cada 2 minutos (caso o SSE falhe temporariamente)
+           dataRefreshInterval = setInterval(fetchData, 2 * 60 * 1000);
        };
 
         window.addEventListener('beforeunload', () => {
