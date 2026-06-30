@@ -1,0 +1,253 @@
+{
+  "communities": {
+    "0": [
+      "api_dados_integrado",
+      "api_dados_integrado_are_names_partially_equal",
+      "api_dados_integrado_execute_pg_query_single_row",
+      "api_dados_integrado_fetch_raw_agenda_events_from_db",
+      "api_dados_integrado_fetch_sagicon_data_from_db_for_agenda",
+      "api_dados_integrado_get_data_from_cache",
+      "api_dados_integrado_process_and_merge_data_in_memory",
+      "api_dados_integrado_rationale_164",
+      "api_dados_integrado_rationale_249",
+      "api_dados_integrado_rationale_319",
+      "api_dados_integrado_rationale_377",
+      "api_dados_integrado_rationale_49",
+      "api_dados_integrado_rationale_74",
+      "api_dados_integrado_rationale_99",
+      "api_dados_integrado_update_dado_diferente_in_db",
+      "atualizar_cache_agenda_diaria",
+      "atualizar_cache_agenda_diaria_run_atualizacao_cache_diaria"
+    ],
+    "1": [
+      "api_atualiza_informacoes",
+      "api_atualiza_informacoes_atualiza_informacoes",
+      "api_login",
+      "api_login_login",
+      "api_login_rationale_25",
+      "copia_dados",
+      "copia_dados_copy_frt_data",
+      "database",
+      "database_connect_db",
+      "database_rationale_14",
+      "server",
+      "server_serve_agenda_html",
+      "server_serve_login_html",
+      "server_serve_relatorios_html",
+      "server_status_check"
+    ],
+    "2": [
+      "api_relatorios",
+      "api_relatorios_check_admin_status",
+      "api_relatorios_fetch_distinct_options",
+      "api_relatorios_get_atendimentos_dados_diferentes",
+      "api_relatorios_get_atendimentos_por_localidade",
+      "api_relatorios_get_atendimentos_por_servico",
+      "api_relatorios_get_atividades_usuarios",
+      "api_relatorios_get_eventos_filtrados",
+      "api_relatorios_get_opcoes_localidades",
+      "api_relatorios_get_opcoes_usuarios_conclusao",
+      "api_relatorios_rationale_23",
+      "api_relatorios_rationale_56",
+      "api_relatorios_rationale_75",
+      "api_relatorios_validate_dates",
+      "api_relatorios_validate_dates_optional"
+    ],
+    "3": [
+      "atualizar_dados_divergentes_historico",
+      "atualizar_dados_divergentes_historico_are_names_partially_equal",
+      "atualizar_dados_divergentes_historico_execute_pg_query_single_row",
+      "atualizar_dados_divergentes_historico_fetch_raw_agenda_events_from_db_historic",
+      "atualizar_dados_divergentes_historico_fetch_sagicon_data_from_db_for_agenda",
+      "atualizar_dados_divergentes_historico_process_and_merge_data_in_memory",
+      "atualizar_dados_divergentes_historico_rationale_124",
+      "atualizar_dados_divergentes_historico_rationale_195",
+      "atualizar_dados_divergentes_historico_rationale_247",
+      "atualizar_dados_divergentes_historico_rationale_49",
+      "atualizar_dados_divergentes_historico_rationale_65",
+      "atualizar_dados_divergentes_historico_rationale_79",
+      "atualizar_dados_divergentes_historico_update_dado_diferente_in_db_batch"
+    ],
+    "4": [
+      "auth",
+      "auth_get_calendar_service",
+      "auth_rationale_21",
+      "busca_eventos_dia",
+      "busca_eventos_dia_fetch_events_from_calendar",
+      "busca_eventos_dia_process_events_for_db",
+      "busca_eventos_dia_rationale_40",
+      "busca_eventos_dia_rationale_79",
+      "busca_eventos_semana",
+      "busca_eventos_semana_fetch_events_from_calendar",
+      "busca_eventos_semana_process_events_for_db",
+      "busca_eventos_semana_rationale_39",
+      "busca_eventos_semana_rationale_85"
+    ],
+    "5": [
+      "claude_skills_graphify_references_add_watch",
+      "claude_skills_graphify_references_exports",
+      "claude_skills_graphify_references_extraction_spec",
+      "claude_skills_graphify_references_query",
+      "claude_skills_graphify_references_transcribe",
+      "claude_skills_graphify_references_update",
+      "claude_skills_graphify_skill",
+      "graphify_incremental_build",
+      "graphify_query_expansion",
+      "graphify_semantic_extraction"
+    ],
+    "6": [
+      "api_gestao_usuarios",
+      "api_gestao_usuarios_alterar_usuario",
+      "api_gestao_usuarios_check_admin_permission",
+      "api_gestao_usuarios_criar_usuario",
+      "api_gestao_usuarios_listar_usuarios",
+      "api_gestao_usuarios_rationale_23"
+    ],
+    "7": [
+      "buscar_todos_eventos",
+      "buscar_todos_eventos_fetch_events_from_calendar",
+      "buscar_todos_eventos_process_events_for_db",
+      "buscar_todos_eventos_rationale_42",
+      "buscar_todos_eventos_rationale_93"
+    ],
+    "8": [
+      "claude_skills_graphify_references_github_and_merge"
+    ],
+    "9": [
+      "claude_skills_graphify_references_hooks"
+    ],
+    "10": [
+      "gerarsenha"
+    ],
+    "11": [
+      "rotina_atualiza_eventos"
+    ]
+  },
+  "cohesion": {
+    "0": 0.19852941176470587,
+    "1": 0.14285714285714285,
+    "2": 0.2571428571428571,
+    "3": 0.19230769230769232,
+    "4": 0.15384615384615385,
+    "5": 0.2,
+    "6": 0.5333333333333333,
+    "7": 0.4,
+    "8": 1.0,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0
+  },
+  "gods": [
+    {
+      "id": "api_relatorios_check_admin_status",
+      "label": "check_admin_status()",
+      "degree": 8
+    },
+    {
+      "id": "api_dados_integrado_fetch_sagicon_data_from_db_for_agenda",
+      "label": "fetch_sagicon_data_from_db_for_agenda()",
+      "degree": 6
+    },
+    {
+      "id": "api_relatorios_validate_dates",
+      "label": "validate_dates()",
+      "degree": 6
+    },
+    {
+      "id": "api_dados_integrado_process_and_merge_data_in_memory",
+      "label": "process_and_merge_data_in_memory()",
+      "degree": 5
+    },
+    {
+      "id": "api_gestao_usuarios_check_admin_permission",
+      "label": "check_admin_permission()",
+      "degree": 5
+    },
+    {
+      "id": "atualizar_cache_agenda_diaria_run_atualizacao_cache_diaria",
+      "label": "run_atualizacao_cache_diaria()",
+      "degree": 5
+    },
+    {
+      "id": "claude_skills_graphify_skill",
+      "label": "Graphify Skill Definition",
+      "degree": 5
+    },
+    {
+      "id": "api_dados_integrado_are_names_partially_equal",
+      "label": "are_names_partially_equal()",
+      "degree": 4
+    },
+    {
+      "id": "api_dados_integrado_fetch_raw_agenda_events_from_db",
+      "label": "fetch_raw_agenda_events_from_db()",
+      "degree": 4
+    },
+    {
+      "id": "api_dados_integrado_update_dado_diferente_in_db",
+      "label": "update_dado_diferente_in_db()",
+      "degree": 4
+    }
+  ],
+  "surprises": [
+    {
+      "source": "run_atualizacao_cache_diaria()",
+      "target": "fetch_raw_agenda_events_from_db()",
+      "source_files": [
+        "atualizar_cache_agenda_diaria.py",
+        "api_dados_integrado.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "run_atualizacao_cache_diaria()",
+      "target": "fetch_sagicon_data_from_db_for_agenda()",
+      "source_files": [
+        "atualizar_cache_agenda_diaria.py",
+        "api_dados_integrado.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "run_atualizacao_cache_diaria()",
+      "target": "process_and_merge_data_in_memory()",
+      "source_files": [
+        "atualizar_cache_agenda_diaria.py",
+        "api_dados_integrado.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "run_atualizacao_cache_diaria()",
+      "target": "update_dado_diferente_in_db()",
+      "source_files": [
+        "atualizar_cache_agenda_diaria.py",
+        "api_dados_integrado.py"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories"
+    },
+    {
+      "source": "Graphify Skill Definition",
+      "target": "Export and Integration Logic",
+      "source_files": [
+        ".claude/skills/graphify/SKILL.md",
+        ".claude/skills/graphify/references/exports.md"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "peripheral node `Export and Integration Logic` unexpectedly reaches hub `Graphify Skill Definition`"
+    }
+  ],
+  "tokens": {
+    "input": 19668,
+    "output": 1675
+  }
+}

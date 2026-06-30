@@ -1,0 +1,87 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1782846142.7016685,
+    "ast_hash": "598cb075410bcd95220ac90bbb60344a",
+    "semantic_hash": "598cb075410bcd95220ac90bbb60344a"
+  },
+  "GerarSenha.py": {
+    "mtime": 1748349912.5007143,
+    "ast_hash": "d990f7796603d2186fc14d060065cc56",
+    "semantic_hash": "d990f7796603d2186fc14d060065cc56"
+  },
+  "api_atualiza_informacoes.py": {
+    "mtime": 1749048238.7850823,
+    "ast_hash": "cbf21d96418f1bd51f27b5af31ff3255",
+    "semantic_hash": "cbf21d96418f1bd51f27b5af31ff3255"
+  },
+  "api_dados_integrado.py": {
+    "mtime": 1749044269.453407,
+    "ast_hash": "fc075d20b58b040abfb381820fb93dab",
+    "semantic_hash": "fc075d20b58b040abfb381820fb93dab"
+  },
+  "api_gestao_usuarios.py": {
+    "mtime": 1749060535.7526495,
+    "ast_hash": "428a62a56fbfed9dd2424f9026cf7e0f",
+    "semantic_hash": "428a62a56fbfed9dd2424f9026cf7e0f"
+  },
+  "api_login.py": {
+    "mtime": 1749058966.1689842,
+    "ast_hash": "ae8b97465d06b04a89b7894900c0fb2a",
+    "semantic_hash": "ae8b97465d06b04a89b7894900c0fb2a"
+  },
+  "api_relatorios.py": {
+    "mtime": 1749059992.2664578,
+    "ast_hash": "573a8c97d5af1e4fcc2ac8150eaaaf33",
+    "semantic_hash": "573a8c97d5af1e4fcc2ac8150eaaaf33"
+  },
+  "atualizar_cache_agenda_diaria.py": {
+    "mtime": 1749044044.6748724,
+    "ast_hash": "e90431dc411ba52d909f60c6e00be0e0",
+    "semantic_hash": "e90431dc411ba52d909f60c6e00be0e0"
+  },
+  "atualizar_dados_divergentes_historico.py": {
+    "mtime": 1748439511.4706109,
+    "ast_hash": "bc6b1e5612b6df8e6610795c7667e28f",
+    "semantic_hash": "bc6b1e5612b6df8e6610795c7667e28f"
+  },
+  "auth.py": {
+    "mtime": 1746454864.7329223,
+    "ast_hash": "a0cb3a1595a2bb4f46b4f944ddd05c18",
+    "semantic_hash": "a0cb3a1595a2bb4f46b4f944ddd05c18"
+  },
+  "busca_eventos_dia.py": {
+    "mtime": 1749044870.378301,
+    "ast_hash": "bcc1d2f9c5565f888162c21933fd8218",
+    "semantic_hash": "bcc1d2f9c5565f888162c21933fd8218"
+  },
+  "busca_eventos_semana.py": {
+    "mtime": 1747917543.338511,
+    "ast_hash": "3aa6d40e86d7c18e834f416250095ef7",
+    "semantic_hash": "3aa6d40e86d7c18e834f416250095ef7"
+  },
+  "buscar_todos_eventos.py": {
+    "mtime": 1748436268.7786584,
+    "ast_hash": "7aa7e04ee4675550b93d586e4ac92af7",
+    "semantic_hash": "7aa7e04ee4675550b93d586e4ac92af7"
+  },
+  "copia_dados.py": {
+    "mtime": 1746794800.3506038,
+    "ast_hash": "902142309939b44246957b361a95f454",
+    "semantic_hash": "902142309939b44246957b361a95f454"
+  },
+  "database.py": {
+    "mtime": 1746644439.0078683,
+    "ast_hash": "7aad72fd0d780f228f205f25aa262f8e",
+    "semantic_hash": "7aad72fd0d780f228f205f25aa262f8e"
+  },
+  "rotina_atualiza_eventos.py": {
+    "mtime": 1749044928.4029117,
+    "ast_hash": "8327abbf3c731c7d3352ac9e7946974b",
+    "semantic_hash": "8327abbf3c731c7d3352ac9e7946974b"
+  },
+  "server.py": {
+    "mtime": 1748351596.1944253,
+    "ast_hash": "02890e7d1f9cfb0bc9be559ab14f8dd3",
+    "semantic_hash": "02890e7d1f9cfb0bc9be559ab14f8dd3"
+  }
+}
