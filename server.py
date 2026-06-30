@@ -20,6 +20,7 @@ from api_dados_integrado import dados_mesclados_bp
 from api_relatorios import relatorios_bp # <<<< ADICIONADO
 
 from api_gestao_usuarios import gestao_usuarios_bp # Crie este arquivo
+from api_recepcao import recepcao_bp # Blueprint para Recepção/Fila
 
 # --- Configuração da Aplicação Flask Principal ---
 app = Flask(__name__, static_folder='.', static_url_path='')
@@ -31,6 +32,7 @@ app.register_blueprint(atualiza_informacoes_bp, url_prefix='/api/atualiza')
 app.register_blueprint(dados_mesclados_bp, url_prefix='/api/agenda')
 app.register_blueprint(relatorios_bp, url_prefix='/api/relatorios') # <<<< ADICIONADO
 app.register_blueprint(gestao_usuarios_bp, url_prefix='/api/gestao_usuarios')
+app.register_blueprint(recepcao_bp, url_prefix='/api/recepcao')
 
 
 # --- Rotas para servir arquivos HTML ---

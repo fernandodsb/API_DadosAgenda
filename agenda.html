@@ -359,6 +359,76 @@
                 body { padding-left: 0; /* padding-right já é 0 pela media query anterior se aplicável */ }
             }
 
+            /* Estilos do Fluxo de Recepção / Fila */
+            .badge-recepcao {
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8em;
+                font-weight: bold;
+                margin-left: 10px;
+                text-transform: uppercase;
+            }
+            .badge-recepcao-agendado {
+                background-color: #e2e3e5;
+                color: #383d41;
+            }
+            .badge-recepcao-chegou {
+                background-color: #fff3cd;
+                color: #664d03;
+                border: 1px solid #ffeeba;
+                animation: pulse 2s infinite;
+            }
+            .badge-recepcao-atendimento {
+                background-color: #cff4fc;
+                color: #055160;
+                border: 1px solid #b6effb;
+            }
+            .recepcao-btn {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.9em;
+                font-weight: bold;
+                transition: background-color 0.2s ease;
+                margin-left: 5px;
+            }
+            .recepcao-btn:hover:not(:disabled) {
+                background-color: #218838;
+            }
+            .recepcao-btn-atender {
+                background-color: #007bff;
+            }
+            .recepcao-btn-atender:hover:not(:disabled) {
+                background-color: #0069d9;
+            }
+            .recepcao-btn-finalizar {
+                background-color: #dc3545;
+            }
+            .recepcao-btn-finalizar:hover:not(:disabled) {
+                background-color: #c82333;
+            }
+            .recepcao-btn:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
+            .recepcao-status-info {
+                margin-top: 10px;
+                padding: 8px;
+                background-color: #f8f9fa;
+                border-radius: 4px;
+                font-size: 0.9em;
+                border-left: 3px solid #007bff;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+                100% { transform: scale(1); }
+            }
+
     </style>
 </head>
 <body>
@@ -497,6 +567,14 @@
                item.dados_atualizados !== true &&
                item.status_evento !== 'C'
            );
+
+           // Se for recepcionista, exibe apenas Goiânia
+           if (authData.userType === 'recepcionista') {
+               eventsToDisplay = eventsToDisplay.filter(item => {
+                   const loc = (item.local_evento || '').toLowerCase();
+                   return loc.includes('goi') || loc.includes('goiania');
+               });
+           }
 
            if (searchTerm) {
                eventsToDisplay = eventsToDisplay.filter(item => {
@@ -657,107 +735,337 @@
            });
        }
 
-       function createEventElement(item) {
-           const eventWrapperDiv = document.createElement('div');
-           eventWrapperDiv.id = `event-${item.google_event_id}`;
-           eventWrapperDiv.className = 'event-item-spacing';
-           const title = document.createElement('div');
-           title.className = 'event-main-title';
-           title.textContent = `${item.nome_farmaceutico || 'Não Informado'} - ${formatarHora(item.data_evento)}`;
-           eventWrapperDiv.appendChild(title);
-           const isConcluded = item.dados_atualizados === true;
-           const acao = Number(item.acao_usuario) || 0;
-           const uid = item.google_event_id;
-           const cardContentWrapper = document.createElement('div');
-           cardContentWrapper.className = item.sagicon_data ? 'event-dual' : 'event-single';
-           if (item.sagicon_data) {
-               const checked1 = acao === 1 ? 'checked' : '';
-               const checked2 = acao === 2 ? 'checked' : '';
-               cardContentWrapper.innerHTML = `
-                   <div class="event-card event-agenda-card">
-                       <div class="event-header event-agenda-header"><div class="event-card-title">Agenda Atendimento</div></div>
-                       <div class="event-body">
-                           <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
-                           <div class="event-detail"><strong>Local:</strong> ${item.local_evento || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
-                       </div>
-                   </div>
-                   <div class="event-card event-sagicon-card ${item.sagicon_data && !item.sagicon_fields_match ? 'sagicon-mismatch-card' : ''}">
-                       <div class="event-header event-sagicon-header"><div class="event-card-title">Dados Sagicon</div></div>
-                       <div class="event-body">
-                           <div class="event-detail"><strong>Nome:</strong> ${item.sagicon_data.nome_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Inscrição:</strong> ${item.sagicon_data.inscricao_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Email:</strong> ${item.sagicon_data.email_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Telefone:</strong> ${item.sagicon_data.telefone_farmaceutico || 'Não Informado'}</div>
-                           <div class="options-container">
-                               <label class="radio-label">
-                                   <input type="radio" name="dados-status-${uid}" class="radio-input" value="dados_atualizados" ${checked1} ${isConcluded ? 'disabled' : ''}>
-                                   <span class="radio-custom"></span>
-                                   Os dados estão atualizados
-                               </label>
-                               <label class="radio-label">
-                                   <input type="radio" name="dados-status-${uid}" class="radio-input" value="dados_diferentes" ${checked2} ${isConcluded ? 'disabled' : ''}>
-                                   <span class="radio-custom"></span>
-                                   Os dados estão diferentes
-                               </label>
-                               <button class="concluir-btn" ${isConcluded ? 'disabled' : ''}>Concluir</button>
-                           </div>
-                       </div>
-                   </div>`;
-               const concluirBtn = cardContentWrapper.querySelector('.concluir-btn');
-               const radioInputs = cardContentWrapper.querySelectorAll('input[type="radio"]');
-               const initiallySelectedRadio = cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
-               concluirBtn.disabled = isConcluded || !initiallySelectedRadio;
-               radioInputs.forEach(radio => {
-                   radio.addEventListener('change', () => {
-                       concluirBtn.disabled = isConcluded || !cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
-                   });
-               });
-               concluirBtn.addEventListener('click', async () => {
-                   if (concluirBtn.disabled) return;
-                   const selectedRadio = cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
-                   if (!selectedRadio) { alert('Selecione uma opção antes de concluir.'); return; }
-                   const selectedValue = selectedRadio.value;
-                   const dadosAtualizados = true;
-                   const acaoUsuario = (selectedValue === 'dados_atualizados' ? 1 : 2);
-                   const currentAuthData = JSON.parse(sessionStorage.getItem('authData') || '{}');
-                   const atualizadoPor = currentAuthData.username || 'sistema_web';
-                   await updateEventStatus(uid, dadosAtualizados, atualizadoPor, acaoUsuario, concluirBtn, radioInputs, cardContentWrapper.querySelector('.event-sagicon-card'));
-               });
-           } else {
-               cardContentWrapper.innerHTML = `
-                   <div class="event-card event-single-card">
-                       <div class="event-header event-agenda-header"><div class="event-card-title">Agenda Atendimento</div></div>
-                       <div class="event-body">
-                           <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
-                           <div class="event-detail"><strong>Local:</strong> ${item.local_evento || 'Não Informado'}</div>
-                           <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
-                           <div class="options-container" style="margin-top: 20px; text-align: right;">
-                               <button class="concluir-btn" ${isConcluded ? 'disabled' : ''}>Concluir Atendimento</button>
-                           </div>
-                       </div> </div>`;
-               const concluirBtnSingle = cardContentWrapper.querySelector('.concluir-btn');
-               concluirBtnSingle.disabled = isConcluded;
-               concluirBtnSingle.addEventListener('click', async () => {
-                    if (concluirBtnSingle.disabled) return;
+        function createEventElement(item) {
+            const eventWrapperDiv = document.createElement('div');
+            eventWrapperDiv.id = `event-${item.google_event_id}`;
+            eventWrapperDiv.className = 'event-item-spacing';
+            
+            const isGoiania = (item.local_evento || '').toLowerCase().includes('goi') || (item.local_evento || '').toLowerCase().includes('goiania');
+            const statusRecepcao = item.status_recepcao || 'agendado';
+            
+            const title = document.createElement('div');
+            title.className = 'event-main-title';
+            title.style.display = 'flex';
+            title.style.alignItems = 'center';
+            title.style.justifyContent = 'space-between';
+            
+            let titleSpan = `<span>${item.nome_farmaceutico || 'Não Informado'} - ${formatarHora(item.data_evento)}</span>`;
+            let badgeHTML = '';
+            if (isGoiania) {
+                let badgeClass = 'badge-recepcao-agendado';
+                let badgeText = 'Agendado';
+                if (statusRecepcao === 'chegou') {
+                    badgeClass = 'badge-recepcao-chegou';
+                    badgeText = 'Aguardando';
+                } else if (statusRecepcao === 'atendimento') {
+                    badgeClass = 'badge-recepcao-atendimento';
+                    badgeText = `Atendendo: ${item.atendido_por || ''}`;
+                }
+                badgeHTML = `<span class="badge-recepcao ${badgeClass}">${badgeText}</span>`;
+            }
+            title.innerHTML = `${titleSpan}${badgeHTML}`;
+            eventWrapperDiv.appendChild(title);
+            
+            const isConcluded = item.dados_atualizados === true;
+            const acao = Number(item.acao_usuario) || 0;
+            const uid = item.google_event_id;
+            const cardContentWrapper = document.createElement('div');
+            cardContentWrapper.className = item.sagicon_data ? 'event-dual' : 'event-single';
+            
+            // Caso 1: Usuário é Recepcionista
+            if (authData.userType === 'recepcionista') {
+                let recepcaoHTML = '';
+                if (statusRecepcao === 'agendado') {
+                    recepcaoHTML = `<button class="recepcao-btn" id="btn-chegou-${uid}">Registrar Chegada</button>`;
+                } else if (statusRecepcao === 'chegou') {
+                    recepcaoHTML = `<div class="recepcao-status-info">Aguardando atendimento na fila.</div>`;
+                } else if (statusRecepcao === 'atendimento') {
+                    recepcaoHTML = `<div class="recepcao-status-info">Em atendimento por <strong>${item.atendido_por || ''}</strong></div>`;
+                }
+                
+                cardContentWrapper.className = 'event-single';
+                cardContentWrapper.innerHTML = `
+                    <div class="event-card event-single-card">
+                        <div class="event-header event-agenda-header"><div class="event-card-title">Controle de Recepção (Goiânia)</div></div>
+                        <div class="event-body">
+                            <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
+                            <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
+                            <div style="margin-top: 20px; text-align: right;">
+                                ${recepcaoHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                if (statusRecepcao === 'agendado') {
+                    const btnChegou = cardContentWrapper.querySelector(`#btn-chegou-${uid}`);
+                    btnChegou.addEventListener('click', async () => {
+                        btnChegou.disabled = true;
+                        btnChegou.textContent = 'Registrando...';
+                        try {
+                            const resp = await fetch(`/api/recepcao/chegou/${uid}`, { method: 'POST' });
+                            if (resp.ok) {
+                                await fetchData();
+                            } else {
+                                alert('Erro ao registrar chegada.');
+                                btnChegou.disabled = false;
+                                btnChegou.textContent = 'Registrar Chegada';
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            alert('Erro ao conectar com o servidor.');
+                            btnChegou.disabled = false;
+                            btnChegou.textContent = 'Registrar Chegada';
+                        }
+                    });
+                }
+                
+                eventWrapperDiv.appendChild(cardContentWrapper);
+                return eventWrapperDiv;
+            }
+            
+            // Caso 2: Atendente/Admin e evento em Goiânia (Lógica de Fila de Atendimento)
+            if (isGoiania) {
+                let queueActionHTML = '';
+                if (statusRecepcao === 'chegou') {
+                    queueActionHTML = `<button class="recepcao-btn recepcao-btn-atender" id="btn-atender-${uid}">Atender</button>`;
+                } else if (statusRecepcao === 'atendimento') {
+                    const isMyService = item.atendido_por === authData.username;
+                    if (isMyService || authData.userType === 'admin') {
+                        queueActionHTML = `<button class="recepcao-btn recepcao-btn-finalizar" id="btn-finalizar-${uid}">Finalizar Atendimento</button>`;
+                    } else {
+                        queueActionHTML = `<span style="font-size:0.9em;color:#055160;">Atendendo por ${item.atendido_por}</span>`;
+                    }
+                } else {
+                    queueActionHTML = `<span style="font-size:0.9em;color:#777;">Aguardando cliente na recepção</span>`;
+                }
+
+                if (item.sagicon_data) {
+                    const checked1 = acao === 1 ? 'checked' : '';
+                    const checked2 = acao === 2 ? 'checked' : '';
+                    cardContentWrapper.innerHTML = `
+                        <div class="event-card event-agenda-card">
+                            <div class="event-header event-agenda-header"><div class="event-card-title">Agenda Atendimento</div></div>
+                            <div class="event-body">
+                                <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
+                                <div class="event-detail"><strong>Local:</strong> ${item.local_evento || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
+                            </div>
+                        </div>
+                        <div class="event-card event-sagicon-card ${item.sagicon_data && !item.sagicon_fields_match ? 'sagicon-mismatch-card' : ''}">
+                            <div class="event-header event-sagicon-header"><div class="event-card-title">Dados Sagicon</div></div>
+                            <div class="event-body">
+                                <div class="event-detail"><strong>Nome:</strong> ${item.sagicon_data.nome_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Inscrição:</strong> ${item.sagicon_data.inscricao_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Email:</strong> ${item.sagicon_data.email_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Telefone:</strong> ${item.sagicon_data.telefone_farmaceutico || 'Não Informado'}</div>
+                                <div class="options-container" style="margin-top: 15px;">
+                                    <label class="radio-label">
+                                        <input type="radio" name="dados-status-${uid}" class="radio-input" value="dados_atualizados" ${checked1} ${statusRecepcao !== 'atendimento' ? 'disabled' : ''}>
+                                        <span class="radio-custom"></span>
+                                        Os dados estão atualizados
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="dados-status-${uid}" class="radio-input" value="dados_diferentes" ${checked2} ${statusRecepcao !== 'atendimento' ? 'disabled' : ''}>
+                                        <span class="radio-custom"></span>
+                                        Os dados estão diferentes
+                                    </label>
+                                    <div style="margin-top: 15px; text-align: right;">
+                                        ${queueActionHTML}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                } else {
+                    cardContentWrapper.innerHTML = `
+                        <div class="event-card event-single-card">
+                            <div class="event-header event-agenda-header"><div class="event-card-title">Agenda Atendimento</div></div>
+                            <div class="event-body">
+                                <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
+                                <div class="event-detail"><strong>Local:</strong> ${item.local_evento || 'Não Informado'}</div>
+                                <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    ${queueActionHTML}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+                
+                // Listeners de fila para Goiânia
+                if (statusRecepcao === 'chegou') {
+                    const btnAtender = cardContentWrapper.querySelector(`#btn-atender-${uid}`);
+                    if (btnAtender) {
+                        btnAtender.addEventListener('click', async () => {
+                            btnAtender.disabled = true;
+                            btnAtender.textContent = 'Iniciando...';
+                            try {
+                                const resp = await fetch(`/api/recepcao/atender/${uid}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ atendido_por: authData.username })
+                                });
+                                if (resp.ok) {
+                                    await fetchData();
+                                } else {
+                                    alert('Erro ao iniciar atendimento.');
+                                    btnAtender.disabled = false;
+                                    btnAtender.textContent = 'Atender';
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                alert('Erro de rede.');
+                                btnAtender.disabled = false;
+                                btnAtender.textContent = 'Atender';
+                            }
+                        });
+                    }
+                } else if (statusRecepcao === 'atendimento') {
+                    const btnFinalizar = cardContentWrapper.querySelector(`#btn-finalizar-${uid}`);
+                    if (btnFinalizar) {
+                        btnFinalizar.addEventListener('click', async () => {
+                            let acaoUsuario = 1;
+                            if (item.sagicon_data) {
+                                const selectedRadio = cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
+                                if (!selectedRadio) {
+                                    alert('Selecione se os dados estão atualizados ou diferentes antes de finalizar.');
+                                    return;
+                                }
+                                acaoUsuario = (selectedRadio.value === 'dados_atualizados' ? 1 : 2);
+                            }
+                            
+                            btnFinalizar.disabled = true;
+                            btnFinalizar.textContent = 'Finalizando...';
+                            try {
+                                const resp = await fetch(`/api/recepcao/finalizar/${uid}`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        atendido_por: authData.username,
+                                        acao_usuario: acaoUsuario
+                                    })
+                                });
+                                if (resp.ok) {
+                                    await fetchData();
+                                } else {
+                                    alert('Erro ao finalizar atendimento.');
+                                    btnFinalizar.disabled = false;
+                                    btnFinalizar.textContent = 'Finalizar Atendimento';
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                alert('Erro de rede.');
+                                btnFinalizar.disabled = false;
+                                btnFinalizar.textContent = 'Finalizar Atendimento';
+                            }
+                        });
+                    }
+                }
+                
+                eventWrapperDiv.appendChild(cardContentWrapper);
+                return eventWrapperDiv;
+            }
+            
+            // Caso 3: Atendente/Admin e evento em Seccionais (Fluxo normal sem fila)
+            if (item.sagicon_data) {
+                const checked1 = acao === 1 ? 'checked' : '';
+                const checked2 = acao === 2 ? 'checked' : '';
+                cardContentWrapper.innerHTML = `
+                    <div class="event-card event-agenda-card">
+                        <div class="event-header event-agenda-header"><div class="event-card-title">Agenda Atendimento</div></div>
+                        <div class="event-body">
+                            <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
+                            <div class="event-detail"><strong>Local:</strong> ${item.local_evento || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
+                        </div>
+                    </div>
+                    <div class="event-card event-sagicon-card ${item.sagicon_data && !item.sagicon_fields_match ? 'sagicon-mismatch-card' : ''}">
+                        <div class="event-header event-sagicon-header"><div class="event-card-title">Dados Sagicon</div></div>
+                        <div class="event-body">
+                            <div class="event-detail"><strong>Nome:</strong> ${item.sagicon_data.nome_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Inscrição:</strong> ${item.sagicon_data.inscricao_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Email:</strong> ${item.sagicon_data.email_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Telefone:</strong> ${item.sagicon_data.telefone_farmaceutico || 'Não Informado'}</div>
+                            <div class="options-container">
+                                <label class="radio-label">
+                                    <input type="radio" name="dados-status-${uid}" class="radio-input" value="dados_atualizados" ${checked1} ${isConcluded ? 'disabled' : ''}>
+                                    <span class="radio-custom"></span>
+                                    Os dados estão atualizados
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="dados-status-${uid}" class="radio-input" value="dados_diferentes" ${checked2} ${isConcluded ? 'disabled' : ''}>
+                                    <span class="radio-custom"></span>
+                                    Os dados estão diferentes
+                                </label>
+                                <button class="concluir-btn" ${isConcluded ? 'disabled' : ''}>Concluir</button>
+                            </div>
+                        </div>
+                    </div>`;
+                const concluirBtn = cardContentWrapper.querySelector('.concluir-btn');
+                const radioInputs = cardContentWrapper.querySelectorAll('input[type="radio"]');
+                const initiallySelectedRadio = cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
+                concluirBtn.disabled = isConcluded || !initiallySelectedRadio;
+                radioInputs.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        concluirBtn.disabled = isConcluded || !cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
+                    });
+                });
+                concluirBtn.addEventListener('click', async () => {
+                    if (concluirBtn.disabled) return;
+                    const selectedRadio = cardContentWrapper.querySelector(`input[name="dados-status-${uid}"]:checked`);
+                    if (!selectedRadio) { alert('Selecione uma opção antes de concluir.'); return; }
+                    const selectedValue = selectedRadio.value;
                     const dadosAtualizados = true;
-                    const acaoUsuario = 1;
+                    const acaoUsuario = (selectedValue === 'dados_atualizados' ? 1 : 2);
                     const currentAuthData = JSON.parse(sessionStorage.getItem('authData') || '{}');
                     const atualizadoPor = currentAuthData.username || 'sistema_web';
-                    await updateEventStatus(uid, dadosAtualizados, atualizadoPor, acaoUsuario, concluirBtnSingle, [], cardContentWrapper.querySelector('.event-single-card'));
-               });
-           }
-           eventWrapperDiv.appendChild(cardContentWrapper);
-           return eventWrapperDiv;
-       }
+                    await updateEventStatus(uid, dadosAtualizados, atualizadoPor, acaoUsuario, concluirBtn, radioInputs, cardContentWrapper.querySelector('.event-sagicon-card'));
+                });
+            } else {
+                cardContentWrapper.innerHTML = `
+                    <div class="event-card event-single-card">
+                        <div class="event-header event-agenda-header"><div class="event-card-title">Agenda Atendimento</div></div>
+                        <div class="event-body">
+                            <div class="event-detail"><strong>Nome:</strong> ${item.nome_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Inscrição:</strong> ${item.inscricao_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Email:</strong> ${item.email_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Telefone:</strong> ${item.telefone_farmaceutico || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Data:</strong> ${formatarData(item.data_evento)}</div>
+                            <div class="event-detail"><strong>Local:</strong> ${item.local_evento || 'Não Informado'}</div>
+                            <div class="event-detail"><strong>Serviço:</strong> ${item.servico_agendado || 'Não Informado'}</div>
+                            <div class="options-container" style="margin-top: 20px; text-align: right;">
+                                <button class="concluir-btn" ${isConcluded ? 'disabled' : ''}>Concluir Atendimento</button>
+                            </div>
+                        </div> </div>`;
+                const concluirBtnSingle = cardContentWrapper.querySelector('.concluir-btn');
+                concluirBtnSingle.disabled = isConcluded;
+                concluirBtnSingle.addEventListener('click', async () => {
+                     if (concluirBtnSingle.disabled) return;
+                     const dadosAtualizados = true;
+                     const acaoUsuario = 1;
+                     const currentAuthData = JSON.parse(sessionStorage.getItem('authData') || '{}');
+                     const atualizadoPor = currentAuthData.username || 'sistema_web';
+                     await updateEventStatus(uid, dadosAtualizados, atualizadoPor, acaoUsuario, concluirBtnSingle, [], cardContentWrapper.querySelector('.event-single-card'));
+                });
+            }
+            eventWrapperDiv.appendChild(cardContentWrapper);
+            return eventWrapperDiv;
+        }
 
        async function updateEventStatus(uid, dadosAtualizados, atualizadoPor, acaoUsuario, concluirBtn, radioInputs = [], cardElement = null) {
             if (concluirBtn) concluirBtn.disabled = true;

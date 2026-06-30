@@ -396,7 +396,8 @@ def get_data_from_cache():
             acao_usuario, status_evento, dado_diferente, 
             data_atualizacao_registro AS atualizado_em, -- Renomeando para consistência com o frontend
             sagicon_data_json AS sagicon_data,      -- Renomeando e será desserializado
-            sagicon_fields_match
+            sagicon_fields_match,
+            status_recepcao, chegada_em, atendido_por, atendimento_inicio, atendimento_fim
         FROM agenda_diaria_cache
         ORDER BY data_evento ASC; 
         """
@@ -423,7 +424,7 @@ def get_data_from_cache():
 
             # Converter datetimes para ISO string se o frontend espera assim
             # O frontend agenda.html parece lidar bem com objetos Date, mas ISO string é mais seguro para JSON.
-            for key in ['data_evento', 'fetched_at', 'atualizado_em']:
+            for key in ['data_evento', 'fetched_at', 'atualizado_em', 'chegada_em', 'atendimento_inicio', 'atendimento_fim']:
                 if key in row_dict and isinstance(row_dict[key], datetime.datetime):
                     row_dict[key] = row_dict[key].isoformat()
 
