@@ -1341,13 +1341,10 @@
            startSessionCheckTimer();
            await fetchData();
            startSSEConnection();
-           // Polling de fallback a cada 2 minutos (caso o SSE falhe temporariamente)
-           dataRefreshInterval = setInterval(fetchData, 2 * 60 * 1000);
        };
 
         window.addEventListener('beforeunload', () => {
             clearInterval(sessionCheckInterval);
-            clearInterval(dataRefreshInterval);
         });
     </script>
 </body>
