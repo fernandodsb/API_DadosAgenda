@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Agenda de Atendimentos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column; /* Para empilhar o header e o conteúdo */
+            align-items: center; /* Centraliza o conteúdo horizontalmente */
+            justify-content: center; /* Centraliza o conteúdo verticalmente */
+            min-height: 100vh; /* Ocupa a altura total da viewport */
+            position: relative; /* Para o header fixo */
+            padding-top: 60px; /* Espaço para o cabeçalho fixo */
+        }
+
+        /* Estilos do cabeçalho fixo */
+        .fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #0056b3; /* Azul escuro */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 900;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            box-sizing: border-box;
+            color: white;
+            justify-content: center; /* Centraliza o título principal */
+        }
+
+        .fixed-header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: white;
+            text-align: center; /* Garante centralização */
+        }
+
+        .login-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 380px; /* Largura máxima para o formulário */
+            text-align: center;
+            border: 1px solid #ddd;
+            box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
+        }
+
+        .login-container h2 {
+            color: #0056b3;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: calc(100% - 20px); /* Largura total menos padding */
+            padding: 12px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box; /* Inclui padding e border no cálculo da largura */
+        }
+
+        .login-btn {
+            background-color: #0056b3;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%; /* Ocupa a largura total do container */
+        }
+
+        .login-btn:hover:not(:disabled) { /* Adicionado :not(:disabled) para o hover */
+            background-color: #004494;
+            transform: translateY(-1px);
+        }
+
+        .login-btn:disabled { /* Estilo para o botão desabilitado */
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        /* Ajustes Responsivos */
+        @media (max-width: 600px) {
+            .login-container {
+                margin: 20px; /* Margem em telas menores */
+                padding: 20px;
+            }
+            .fixed-header {
+                padding: 10px;
+                justify-content: center; /* Garante centralização em telas menores também */
+            }
+            .fixed-header h1 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="fixed-header">
+        <h1>Agenda de Atendimentos</h1>
+    </div>
+
+    <div class="login-container">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn" onclick="handleLogin()">Entrar</button> <!-- Adicionado ID ao botão -->
+        <p id="error-message" class="error-message" style="display: none;"></p>
+    </div>
+
+    <script>
+        // Função para exibir mensagens de erro
+        function showErrorMessage(message) {
+            const errorMessageElement = document.getElementById('error-message');
+            errorMessageElement.textContent = message;
+            errorMessageElement.style.display = 'block';
+        }
+
+        // Função para lidar com o login
+        async function handleLogin() {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const loginButton = document.getElementById('loginBtn'); // Pega a referência do botão
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+            const errorMessageElement = document.getElementById('error-message');
+
+            errorMessageElement.style.display = 'none'; // Esconde a mensagem de erro anterior
+
+            if (!username || !password) {
+                showErrorMessage('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            // Desabilita o botão e muda o texto
+            loginButton.disabled = true;
+            loginButton.textContent = 'Entrando...';
+
+            try {
+                // Mantenha a URL da sua API de login aqui
+                const response = await fetch('http://10.0.0.94:8080/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.authenticated) {
+                    const authDataToStore = {
+                        authenticated: true,
+                        username: username,
+                        userType: data.userType,
+                        pode_criar_usuario: data.pode_criar_usuario,
+                        expireTime: Date.now() + (10 * 60 * 1000) // 10 minutos
+                    };
+                    sessionStorage.setItem('authData', JSON.stringify(authDataToStore));
+
+                    // O redirecionamento ocorrerá, então não precisamos reabilitar o botão aqui.
+                    if (data.userType === 'admin') {
+                        window.location.href = 'relatorios.html';
+                    } else {
+                        window.location.href = 'agenda.html';
+                    }
+
+                } else {
+                    // Login falhou ou resposta não esperada
+                    showErrorMessage(data.message || 'Erro de login. Verifique suas credenciais ou o status do usuário.');
+                    // Reabilita o botão em caso de falha
+                    loginButton.disabled = false;
+                    loginButton.textContent = 'Entrar';
+                }
+            } catch (error) {
+                console.error('Erro na requisição de login:', error);
+                showErrorMessage('Erro ao conectar ao servidor. Tente novamente mais tarde.');
+                // Reabilita o botão em caso de erro de conexão/fetch
+                loginButton.disabled = false;
+                loginButton.textContent = 'Entrar';
+            }
+        }
+
+        // Adicionar listener para tecla Enter nos campos de input
+        document.getElementById('username').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                // Verifica se o botão não está desabilitado antes de chamar handleLogin
+                if (!document.getElementById('loginBtn').disabled) {
+                    handleLogin();
+                }
+            }
+        });
+
+        document.getElementById('password').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                // Verifica se o botão não está desabilitado antes de chamar handleLogin
+                if (!document.getElementById('loginBtn').disabled) {
+                    handleLogin();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

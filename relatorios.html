@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Consulta de Eventos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind bg-gray-100 */
+        }
+        .filter-card {
+            background-color: white;
+            border-radius: 0.75rem; /* Tailwind rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-lg */
+        }
+        .event-card {
+            background-color: white;
+            border-radius: 0.5rem; /* Tailwind rounded-lg */
+            border: 1px solid #e5e7eb; /* Tailwind border-gray-200 */
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .event-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 0.80rem;
+            font-weight: 600;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+        }
+        .badge-blue { background-color: #bfdbfe; color: #1e40af; }
+        .badge-green { background-color: #a7f3d0; color: #065f46; }
+        .badge-red { background-color: #fecaca; color: #991b1b; }
+        .badge-yellow { background-color: #fef08a; color: #854d0e; }
+        .badge-gray { background-color: #e5e7eb; color: #374151; }
+
+        .loader {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        select.w-full, input[type="date"].w-full, input[type="text"].w-full {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        label {
+            font-size: 0.9rem;
+        }
+        select.w-full {
+            padding-right: 2.5rem;
+        }
+        .btn-export { /* Classe genérica para botões de exportação */
+            color: white;
+            font-size: 0.875rem; /* text-sm */
+            padding: 0.5rem 1rem; /* px-4 py-2 */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.3s ease;
+        }
+        .btn-export-pdf {
+            background-color: #dc2626; /* Tailwind bg-red-600 */
+        }
+        .btn-export-pdf:hover {
+            background-color: #b91c1c; /* Tailwind bg-red-700 */
+        }
+        .btn-export-excel {
+            background-color: #16a34a; /* Tailwind bg-green-600 */
+        }
+        .btn-export-excel:hover {
+            background-color: #15803d; /* Tailwind bg-green-700 */
+        }
+        /* Ajuste para o header e título */
+        .header-container {
+            display: flex;
+            justify-content: center; /* Centraliza o conteúdo (o h1) */
+            align-items: center;
+            position: relative; /* Permite posicionamento absoluto dos links de ação */
+            width: 100%; /* Ocupa toda a largura do header pai */
+        }
+        .header-actions-container {
+            position: absolute;
+            right: 0; /* Alinha os links à direita do .header-container */
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-blue-700 text-white p-4 shadow-md fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto header-container">
+            <h1 class="text-xl font-semibold">Painel Administrativo - Consulta de Eventos</h1>
+            <div class="header-actions-container">
+                <a href="gerenciar_usuarios.html" id="gerenciar-usuarios-link" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors" style="display:none;">Gerenciar Usuários</a>
+                <a href="agenda.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">Agenda</a>
+                <a href="#" id="logout-btn-header" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-600 transition-colors">Sair</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto pt-24 pb-8 px-4">
+        <section class="filter-card p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-6 border-b pb-3">Filtros de Pesquisa</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-4">
+                <div>
+                    <label for="data_inicio" class="block text-sm font-medium text-gray-700 mb-1">Data Inicial:</label>
+                    <input type="date" id="data_inicio" name="data_inicio" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="data_fim" class="block text-sm font-medium text-gray-700 mb-1">Data Final:</label>
+                    <input type="date" id="data_fim" name="data_fim" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="localidade" class="block text-sm font-medium text-gray-700 mb-1">Localidade:</label>
+                    <select id="localidade" name="localidade" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todas as Localidades</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="status_evento_filtro" class="block text-sm font-medium text-gray-700 mb-1">Status Agendamento:</label>
+                    <select id="status_evento_filtro" name="status_evento_filtro" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todos</option>
+                        <option value="A">Ativos</option>
+                        <option value="C">Cancelados</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dados_diferentes" class="block text-sm font-medium text-gray-700 mb-1">Divergência Sagicon?:</label>
+                    <select id="dados_diferentes" name="dados_diferentes" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Ambos</option>
+                        <option value="true">Sim (Divergente)</option>
+                        <option value="false">Não (Conforme ou N/A)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="atualizado_por" class="block text-sm font-medium text-gray-700 mb-1">Usuário (Conclusão):</label>
+                    <select id="atualizado_por" name="atualizado_por" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todos os Usuários</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="inscricao" class="block text-sm font-medium text-gray-700 mb-1">Inscrição CRF:</label>
+                     <input type="text" id="inscricao" name="inscricao" placeholder="Digite a inscrição" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                 <div>
+                    <label for="nome_farmaceutico" class="block text-sm font-medium text-gray-700 mb-1">Nome do Farmacêutico:</label>
+                    <input type="text" id="nome_farmaceutico" name="nome_farmaceutico" placeholder="Parte do nome" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <div class="mt-6 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
+                <button id="clear-filters-btn" class="w-full sm:w-auto px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors text-sm">Limpar Filtros</button>
+                <button id="apply-filters-btn" class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm">Aplicar Filtros</button>
+            </div>
+        </section>
+
+        <section id="results-section">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+                <h2 class="text-xl font-semibold text-gray-700">Eventos Encontrados</h2>
+                <div class="flex items-center space-x-3">
+                    <span id="event-count" class="text-sm text-gray-600 bg-gray-200 px-3 py-1 rounded-full"></span>
+                    <button id="export-pdf-btn" class="btn-export btn-export-pdf" style="display: none;">Exportar PDF</button>
+                    <button id="export-excel-btn" class="btn-export btn-export-excel" style="display: none;">Exportar Excel</button>
+                </div>
+            </div>
+            <div id="loader-container" class="text-center py-8" style="display: none;">
+                <div class="loader"></div>
+                <p class="text-gray-500 mt-2">Carregando eventos...</p>
+            </div>
+            <div id="events-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* Cards dos eventos serão inseridos aqui */}
+            </div>
+            <div id="no-results-message" class="text-center py-10 text-gray-500" style="display: none;">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                  </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum evento encontrado</h3>
+                <p class="mt-1 text-sm text-gray-500">Tente ajustar seus filtros de pesquisa ou verifique os dados de origem.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        let currentFilteredEvents = [];
+
+        function logout() {
+            sessionStorage.removeItem('authData');
+            window.location.href = '/'; // Alterado para a raiz
+        }
+
+        function formatBoolean(value, type) {
+            if (type === 'dado_diferente') {
+                if (value === true) return 'Sim (Divergente)';
+                if (value === false) return 'Não (Conforme)';
+            } else {
+                 if (value === true) return 'Sim';
+                 if (value === false) return 'Não';
+            }
+            return 'N/A';
+        }
+
+        function formatStatusEvento(status) {
+            if (status === 'A') return 'Ativo';
+            if (status === 'C') return 'Cancelado';
+            return status || 'N/A';
+        }
+
+        function formatBooleanForHTML(value, type) {
+            if (type === 'dado_diferente') {
+                if (value === true) return '<span class="badge badge-yellow">Sim (Divergente)</span>';
+                if (value === false) return '<span class="badge badge-green">Não (Conforme)</span>';
+            } else {
+                 if (value === true) return '<span class="badge badge-green">Sim</span>';
+                 if (value === false) return '<span class="badge badge-red">Não</span>';
+            }
+            return '<span class="badge badge-gray">N/A</span>';
+        }
+
+        function formatStatusEventoForHTML(status) {
+            if (status === 'A') return '<span class="badge badge-blue">Ativo</span>';
+            if (status === 'C') return '<span class="badge badge-yellow">Cancelado</span>';
+            return `<span class="badge badge-gray">${status || 'N/A'}</span>`;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const authData = JSON.parse(sessionStorage.getItem('authData') || '{}');
+
+            const dataInicioInput = document.getElementById('data_inicio');
+            const dataFimInput = document.getElementById('data_fim');
+            const localidadeSelect = document.getElementById('localidade');
+            const statusEventoSelect = document.getElementById('status_evento_filtro');
+            const dadosDiferentesSelect = document.getElementById('dados_diferentes');
+            const atualizadoPorSelect = document.getElementById('atualizado_por');
+            const inscricaoInput = document.getElementById('inscricao');
+            const nomeFarmaceuticoInput = document.getElementById('nome_farmaceutico');
+
+            const applyFiltersBtn = document.getElementById('apply-filters-btn');
+            const clearFiltersBtn = document.getElementById('clear-filters-btn');
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            const exportExcelBtn = document.getElementById('export-excel-btn');
+
+            const eventsContainer = document.getElementById('events-container');
+            const loaderContainer = document.getElementById('loader-container');
+            const noResultsMessage = document.getElementById('no-results-message');
+            const eventCountSpan = document.getElementById('event-count');
+            const logoutBtnHeader = document.getElementById('logout-btn-header');
+
+            const gerenciarUsuariosLink = document.getElementById('gerenciar-usuarios-link');
+
+
+            if (logoutBtnHeader) {
+                logoutBtnHeader.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    logout();
+                });
+            }
+
+            if (authData.authenticated && authData.userType === 'admin' && authData.pode_criar_usuario === true) {
+                if(gerenciarUsuariosLink) {
+                    gerenciarUsuariosLink.style.display = 'inline-block';
+                }
+            }
+
+            if (!authData.authenticated || authData.userType !== 'admin') {
+                 document.body.innerHTML = `
+                    <header class="bg-blue-700 text-white p-4 shadow-md fixed top-0 left-0 right-0 z-50">
+                        <div class="container mx-auto header-container"><h1 class="text-xl font-semibold">Acesso Negado</h1></div>
+                    </header>
+                    <main class="container mx-auto pt-20 pb-8 px-4">
+                        <div class="text-center py-10">
+                            <p class="text-xl font-semibold text-red-600">Você não tem permissão para acessar esta página.</p>
+                            <a href="agenda.html" class="mt-4 inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">Voltar para Agenda</a>
+                        </div>
+                    </main>`;
+                return;
+            }
+
+            async function populateDropdown(selectElement, endpoint, defaultOptionText) {
+                try {
+                    const response = await fetch(`${endpoint}?usuario_request=${authData.username}`);
+                    if (!response.ok) {
+                        console.error(`Erro ao buscar opções para ${selectElement.id}: ${response.status}`);
+                        selectElement.innerHTML = `<option value="">${defaultOptionText} (Erro)</option>`;
+                        return;
+                    }
+                    const options = await response.json();
+                    selectElement.innerHTML = `<option value="">${defaultOptionText}</option>`;
+                    if (Array.isArray(options)) {
+                        options.forEach(optionValue => {
+                            if (optionValue !== null && optionValue.toString().trim() !== '') {
+                                const option = document.createElement('option');
+                                option.value = optionValue;
+                                option.textContent = optionValue;
+                                selectElement.appendChild(option);
+                            }
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Erro ao popular dropdown ${selectElement.id}:`, error);
+                    selectElement.innerHTML = `<option value="">${defaultOptionText} (Erro)</option>`;
+                }
+            }
+
+            populateDropdown(atualizadoPorSelect, '/api/relatorios/opcoes/usuarios_conclusao', 'Todos os Usuários');
+            populateDropdown(localidadeSelect, '/api/relatorios/opcoes/localidades', 'Todas as Localidades');
+
+
+            async function fetchAndDisplayEvents() {
+                loaderContainer.style.display = 'block';
+                eventsContainer.innerHTML = '';
+                noResultsMessage.style.display = 'none';
+                exportPdfBtn.style.display = 'none';
+                exportExcelBtn.style.display = 'none';
+                eventCountSpan.textContent = 'Buscando...';
+                currentFilteredEvents = [];
+
+                const params = new URLSearchParams();
+                params.append('usuario_request', authData.username);
+
+                if (dataInicioInput.value) params.append('data_inicio', dataInicioInput.value);
+                if (dataFimInput.value) params.append('data_fim', dataFimInput.value);
+                if (localidadeSelect.value) params.append('localidade', localidadeSelect.value);
+                if (statusEventoSelect.value) params.append('status_evento', statusEventoSelect.value);
+                if (dadosDiferentesSelect.value) params.append('dados_diferentes', dadosDiferentesSelect.value);
+                if (atualizadoPorSelect.value) params.append('atualizado_por', atualizadoPorSelect.value);
+                if (inscricaoInput.value) params.append('inscricao', inscricaoInput.value);
+                if (nomeFarmaceuticoInput.value) params.append('nome_farmaceutico', nomeFarmaceuticoInput.value);
+
+                try {
+                    const response = await fetch(`/api/relatorios/filtrar_eventos?${params.toString()}`);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ erro: `Erro HTTP: ${response.status}` }));
+                        throw new Error(errorData.erro || `Erro HTTP: ${response.status}`);
+                    }
+                    const events = await response.json();
+                    currentFilteredEvents = events;
+                    displayEvents(events);
+                } catch (error) {
+                    console.error('Erro ao buscar eventos:', error);
+                    eventsContainer.innerHTML = `<p class="col-span-full text-center text-red-600 p-4 bg-red-100 rounded-md">Erro ao carregar eventos: ${error.message}</p>`;
+                     eventCountSpan.textContent = 'Erro ao carregar';
+                } finally {
+                    loaderContainer.style.display = 'none';
+                }
+            }
+
+            function displayEvents(events) {
+                if (!events || events.length === 0) {
+                    noResultsMessage.style.display = 'block';
+                    eventCountSpan.textContent = '0 eventos encontrados';
+                    exportPdfBtn.style.display = 'none';
+                    exportExcelBtn.style.display = 'none';
+                    return;
+                }
+
+                eventCountSpan.textContent = `${events.length} evento(s) encontrado(s)`;
+                exportPdfBtn.style.display = 'inline-block';
+                exportExcelBtn.style.display = 'inline-block';
+
+                events.forEach(event => {
+                    const card = document.createElement('div');
+                    card.className = 'event-card p-5 space-y-3';
+                    card.innerHTML = `
+                        <div>
+                            <h3 class="text-lg font-semibold text-blue-700 truncate" title="${event.nome_farmaceutico || 'Nome não disponível'}">${event.nome_farmaceutico || 'Nome não disponível'}</h3>
+                            <p class="text-sm text-gray-500">${event.servico_agendado || 'Serviço N/A'}</p>
+                        </div>
+                        <div class="text-base space-y-1.5">
+                            <p><strong class="font-medium text-gray-700">Data:</strong> ${event.data_evento_formatada || 'N/A'}</p>
+                            <p><strong class="font-medium text-gray-700">Local:</strong> ${event.local_evento || 'N/A'}</p>
+                            <p><strong class="font-medium text-gray-700">Inscrição:</strong> ${event.inscricao_farmaceutico || 'N/A'}</p>
+                        </div>
+                        <hr class="my-3">
+                        <div class="text-sm space-y-1.5">
+                            <p><strong class="font-medium">Status Agendamento:</strong> ${formatStatusEventoForHTML(event.status_evento)}</p>
+                            <p><strong class="font-medium">Atendido?:</strong> ${formatBooleanForHTML(event.dados_atualizados, 'dados_atualizados')}</p>
+                            <p><strong class="font-medium">Divergência Sagicon?:</strong> ${formatBooleanForHTML(event.dado_diferente, 'dado_diferente')}</p>
+                            <p><strong class="font-medium">Por:</strong> ${event.atualizado_por || 'N/A'}</p>
+                            <p><strong class="font-medium">Em:</strong> ${event.data_atualizacao_formatada || 'N/A'}</p>
+                        </div>
+                        <div class="mt-auto pt-3">
+                             <p class="text-sm text-gray-500 text-right">ID: ${event.google_event_id}</p>
+                        </div>
+                    `;
+                    eventsContainer.appendChild(card);
+                });
+            }
+
+            applyFiltersBtn.addEventListener('click', fetchAndDisplayEvents);
+
+            clearFiltersBtn.addEventListener('click', () => {
+                dataInicioInput.value = '';
+                dataFimInput.value = '';
+                localidadeSelect.selectedIndex = 0;
+                statusEventoSelect.selectedIndex = 0;
+                dadosDiferentesSelect.value = '';
+                atualizadoPorSelect.selectedIndex = 0;
+                inscricaoInput.value = '';
+                nomeFarmaceuticoInput.value = '';
+                setDefaultDatesAndFetch();
+            });
+
+            function setDefaultDatesAndFetch() {
+                const today = new Date().toISOString().split('T')[0];
+                dataInicioInput.value = today;
+                dataFimInput.value = today;
+                statusEventoSelect.value = "A";
+                fetchAndDisplayEvents();
+            }
+
+            function exportToPDF() {
+                if (currentFilteredEvents.length === 0) {
+                    alert("Não há dados para exportar para PDF.");
+                    return;
+                }
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+                doc.setFontSize(18);
+                doc.text("Relatório de Eventos da Agenda", 14, 22);
+                doc.setFontSize(11);
+                doc.setTextColor(100);
+                const today = new Date();
+                doc.text(`Gerado em: ${today.toLocaleDateString('pt-BR')} ${today.toLocaleTimeString('pt-BR')}`, 14, 30);
+
+                const head = [['Nome Farmacêutico', 'Serviço', 'Data Evento', 'Local', 'Inscrição', 'Status Agend.', 'Atendido?', 'Diverg. Sagicon?', 'Concluído Por', 'Data Conclusão']];
+                const body = currentFilteredEvents.map(event => [
+                    event.nome_farmaceutico || 'N/A',
+                    event.servico_agendado || 'N/A',
+                    event.data_evento_formatada || 'N/A',
+                    event.local_evento || 'N/A',
+                    event.inscricao_farmaceutico || 'N/A',
+                    formatStatusEvento(event.status_evento),
+                    formatBoolean(event.dados_atualizados, 'dados_atualizados'),
+                    formatBoolean(event.dado_diferente, 'dado_diferente'),
+                    event.atualizado_por || 'N/A',
+                    event.data_atualizacao_formatada || 'N/A'
+                ]);
+                doc.autoTable({
+                    head: head, body: body, startY: 35, theme: 'striped',
+                    headStyles: { fillColor: [0, 86, 179] },
+                    styles: { fontSize: 7, cellPadding: 1.5, halign: 'left' },
+                    columnStyles: { 0: { cellWidth: 35 }, 1: { cellWidth: 35 } }
+                });
+                let dataInicio = dataInicioInput.value || "NaoDefinida";
+                let dataFim = dataFimInput.value || "NaoDefinida";
+                doc.save(`Relatorio_Eventos_${dataInicio}_a_${dataFim}.pdf`);
+            }
+
+            function exportToExcel() {
+                if (currentFilteredEvents.length === 0) {
+                    alert("Não há dados para exportar para Excel.");
+                    return;
+                }
+
+                const worksheetData = currentFilteredEvents.map(event => ({
+                    "Nome Farmacêutico": event.nome_farmaceutico || 'N/A',
+                    "Serviço Agendado": event.servico_agendado || 'N/A',
+                    "Data Evento": event.data_evento_formatada || 'N/A',
+                    "Local": event.local_evento || 'N/A',
+                    "Inscrição CRF": event.inscricao_farmaceutico || 'N/A',
+                    "Email": event.email_farmaceutico || 'N/A',
+                    "Telefone": event.telefone_farmaceutico || 'N/A',
+                    "Status Agendamento": formatStatusEvento(event.status_evento),
+                    "Atendido?": formatBoolean(event.dados_atualizados, 'dados_atualizados'),
+                    "Divergência Sagicon?": formatBoolean(event.dado_diferente, 'dado_diferente'),
+                    "Concluído Por": event.atualizado_por || 'N/A',
+                    "Data Conclusão": event.data_atualizacao_formatada || 'N/A',
+                    "Ação Usuário Agenda": event.acao_usuario || 'N/A',
+                    "ID Google Evento": event.google_event_id
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Eventos");
+
+                const colWidths = [
+                    { wch: 30 }, { wch: 30 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
+                    { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 20 },
+                    { wch: 20 }, { wch: 18 }, { wch: 15 }, { wch: 30 }
+                ];
+                worksheet["!cols"] = colWidths;
+
+                let dataInicio = dataInicioInput.value || "NaoDefinida";
+                let dataFim = dataFimInput.value || "NaoDefinida";
+                XLSX.writeFile(workbook, `Relatorio_Eventos_${dataInicio}_a_${dataFim}.xlsx`);
+            }
+
+            exportPdfBtn.addEventListener('click', exportToPDF);
+            exportExcelBtn.addEventListener('click', exportToExcel);
+
+            setDefaultDatesAndFetch();
+        });
+    </script>
+</body>
+</html>

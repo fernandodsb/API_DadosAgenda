@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerenciar Usuários</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      padding-top: 80px;
+    }
+
+    .fixed-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #0056b3;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 900;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      height: 60px;
+      box-sizing: border-box;
+      color: white;
+    }
+    .fixed-header h1 {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      margin: 0;
+      font-size: 1.5em;
+      white-space: nowrap;
+    }
+    .fixed-header .header-actions {
+      display: flex;
+      align-items: center;
+      position: absolute;
+      right: 20px;
+    }
+    .fixed-header .header-actions a {
+      text-decoration: none;
+      margin-left: 15px;
+      padding: 8px 12px;
+      background-color: #fff;
+      color: #0056b3;
+      border: 1px solid #fff;
+      border-radius: 4px;
+      font-size: 0.9em;
+      transition: all 0.3s ease;
+    }
+    .fixed-header .header-actions a:hover {
+      background-color: #e6e6e6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .form-section {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #004494;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .user-list table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    .user-list th,
+    .user-list td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    .user-list th {
+      background-color: #f2f2f2;
+    }
+    .error-message,
+    .success-message {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+    }
+    .error-message {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .success-message {
+      background-color: #d4edda;
+      color: #155724;
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed-header">
+    <h1>Gerenciar Usuários</h1>
+    <div class="header-actions">
+      <a href="relatorios.html" id="admin-panel-link-header" style="display:none;">Painel Admin</a>
+      <a href="agenda.html">Agenda</a>
+      <a href="#" id="logout-btn-header">Sair</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="message-area"></div>
+
+    <div class="form-section" id="create-user-section">
+      <h2>Criar Novo Usuário</h2>
+      <form id="createUserForm">
+        <label for="createNome">Nome Completo:</label>
+        <input type="text" id="createNome" required>
+        <label for="createUsuario">Usuário (Login):</label>
+        <input type="text" id="createUsuario" required>
+        <label for="createSenha">Senha:</label>
+        <input type="password" id="createSenha" required>
+        <label for="createTipoUsuario">Tipo de Usuário:</label>
+        <select id="createTipoUsuario">
+          <option value="padrao">Padrão</option>
+          <option value="admin">Admin</option>
+        </select>
+        <label for="createPodeCriar">
+          <input type="checkbox" id="createPodeCriar"> Pode criar/gerenciar outros usuários?
+        </label>
+        <button type="submit">Criar Usuário</button>
+      </form>
+    </div>
+
+    <div class="form-section" id="edit-user-section" style="display:none;">
+      <h2>Alterar Usuário (<span id="editingUserName"></span>)</h2>
+      <form id="editUserForm">
+        <input type="hidden" id="editUserId">
+        <label for="editNome">Nome Completo:</label>
+        <input type="text" id="editNome" required>
+        <label for="editUsuarioView">Usuário (Login):</label>
+        <input type="text" id="editUsuarioView" readonly style="background:#eee;">
+        <label for="editNovaSenha">Nova Senha (deixe em branco para não alterar):</label>
+        <input type="password" id="editNovaSenha">
+        <label for="editTipoUsuario">Tipo de Usuário:</label>
+        <select id="editTipoUsuario">
+          <option value="padrao">Padrão</option>
+          <option value="admin">Admin</option>
+        </select>
+        <label for="editStatus">Status:</label>
+        <select id="editStatus">
+          <option value="true">Ativo</option>
+          <option value="false">Inativo</option>
+        </select>
+        <label for="editPodeCriar">
+          <input type="checkbox" id="editPodeCriar"> Pode criar/gerenciar outros usuários?
+        </label>
+        <button type="submit">Salvar Alterações</button>
+        <button type="button" id="cancelEditBtn">Cancelar Edição</button>
+      </form>
+    </div>
+
+    <div class="user-list">
+      <h2>Usuários Existentes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Usuário</th>
+            <th>Tipo</th>
+            <th>Status</th>
+            <th>Pode Criar?</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="userListBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+    <script>
+        const authData = JSON.parse(sessionStorage.getItem('authData') || '{}');
+
+        // Proteção da página: só permite acesso se autenticado E com permissão para criar usuários
+        if (!authData.authenticated || authData.pode_criar_usuario !== true) {
+            document.body.innerHTML = '<div class="fixed-header"><h1>Acesso Negado</h1></div> <div class="container"><p style="color:red; font-size:1.2em;">Você não tem permissão para acessar esta página. <a href="agenda.html">Voltar</a></p></div>';
+            throw new Error("Acesso não autorizado para gerenciar usuários."); // Impede a execução do restante do script
+        }
+
+        // Lógica para exibir o link do Painel Admin se o usuário for admin
+        const adminPanelLinkHeader = document.getElementById('admin-panel-link-header');
+        if (authData.userType === 'admin' && adminPanelLinkHeader) {
+            adminPanelLinkHeader.style.display = 'inline-block';
+        }
+
+
+        const logoutBtnHeader = document.getElementById('logout-btn-header');
+        if (logoutBtnHeader) {
+            logoutBtnHeader.addEventListener('click', (e) => {
+                e.preventDefault();
+                sessionStorage.removeItem('authData');
+                window.location.href = '/'; // Redireciona para a página de login (raiz)
+            });
+        }
+
+
+        const createUserForm = document.getElementById('createUserForm');
+        const createTipoUsuarioSelect = document.getElementById('createTipoUsuario');
+        const createPodeCriarCheckbox = document.getElementById('createPodeCriar');
+
+        const editUserForm = document.getElementById('editUserForm');
+        const editTipoUsuarioSelect = document.getElementById('editTipoUsuario');
+        const editPodeCriarCheckbox = document.getElementById('editPodeCriar');
+
+        const userListBody = document.getElementById('userListBody');
+        const messageArea = document.getElementById('message-area');
+        const editUserSection = document.getElementById('edit-user-section');
+        const editingUserNameSpan = document.getElementById('editingUserName');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        function showMessage(text, type = 'success') {
+            messageArea.innerHTML = `<div class="${type}-message">${text}</div>`;
+            setTimeout(() => { messageArea.innerHTML = ''; }, 5000);
+        }
+
+        function toggleCreatePodeCriarCheckbox() {
+            if (createTipoUsuarioSelect.value === 'admin') {
+                createPodeCriarCheckbox.disabled = false;
+            } else {
+                createPodeCriarCheckbox.disabled = true;
+                createPodeCriarCheckbox.checked = false;
+            }
+        }
+        createTipoUsuarioSelect.addEventListener('change', toggleCreatePodeCriarCheckbox);
+        toggleCreatePodeCriarCheckbox();
+
+         function toggleEditPodeCriarCheckbox() {
+            if (editTipoUsuarioSelect.value === 'admin') {
+                editPodeCriarCheckbox.disabled = false;
+            } else {
+                editPodeCriarCheckbox.disabled = true;
+                editPodeCriarCheckbox.checked = false;
+            }
+        }
+        editTipoUsuarioSelect.addEventListener('change', toggleEditPodeCriarCheckbox);
+
+
+        async function fetchUsers() {
+            try {
+                const response = await fetch(`/api/gestao_usuarios/usuarios?usuario_solicitante=${authData.username}`);
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({ erro: `Erro ${response.status}` }));
+                    throw new Error(err.erro || `Erro ${response.status}`);
+                }
+                const users = await response.json();
+                userListBody.innerHTML = '';
+                users.forEach(user => {
+                    const row = userListBody.insertRow();
+                    row.innerHTML = `
+                        <td>${user.id}</td>
+                        <td>${user.nome}</td>
+                        <td>${user.usuario}</td>
+                        <td>${user.tipo_usuario}</td>
+                        <td>${user.status ? 'Ativo' : 'Inativo'}</td>
+                        <td>${user.pode_criar_usuario ? 'Sim' : 'Não'}</td>
+                        <td><button onclick="prepareEditUser(${user.id}, '${user.nome}', '${user.usuario}', '${user.tipo_usuario}', ${user.status}, ${user.pode_criar_usuario})">Alterar</button></td>
+                    `;
+                });
+            } catch (error) {
+                showMessage(`Erro ao listar usuários: ${error.message}`, 'error');
+            }
+        }
+
+        createUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                usuario_solicitante: authData.username,
+                nome: document.getElementById('createNome').value,
+                usuario: document.getElementById('createUsuario').value,
+                senha: document.getElementById('createSenha').value,
+                tipo_usuario: createTipoUsuarioSelect.value,
+                pode_criar_usuario: createPodeCriarCheckbox.checked
+            };
+            try {
+                const response = await fetch('/api/gestao_usuarios/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.erro || `Erro ${response.status}`);
+                showMessage(result.message, 'success');
+                createUserForm.reset();
+                toggleCreatePodeCriarCheckbox();
+                fetchUsers();
+            } catch (error) {
+                showMessage(`Erro ao criar usuário: ${error.message}`, 'error');
+            }
+        });
+
+        window.prepareEditUser = function(id, nome, usuario, tipo, status, podeCriar) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editNome').value = nome;
+            document.getElementById('editUsuarioView').value = usuario;
+            editTipoUsuarioSelect.value = tipo;
+            document.getElementById('editStatus').value = status.toString(); // Popula o status
+            editPodeCriarCheckbox.checked = podeCriar;
+            document.getElementById('editNovaSenha').value = '';
+
+            toggleEditPodeCriarCheckbox();
+
+            editingUserNameSpan.textContent = nome;
+            editUserSection.style.display = 'block';
+            document.getElementById('create-user-section').style.display = 'none';
+            window.scrollTo(0, editUserSection.offsetTop - 70);
+        }
+
+        cancelEditBtn.addEventListener('click', () => {
+            editUserSection.style.display = 'none';
+            document.getElementById('create-user-section').style.display = 'block';
+            editUserForm.reset();
+            toggleEditPodeCriarCheckbox();
+        });
+
+        editUserForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('editUserId').value;
+            const payload = {
+                usuario_solicitante: authData.username,
+                nome: document.getElementById('editNome').value,
+                tipo_usuario: editTipoUsuarioSelect.value,
+                status: document.getElementById('editStatus').value === 'true', // Envia o status
+                pode_criar_usuario: editPodeCriarCheckbox.checked
+            };
+            const novaSenha = document.getElementById('editNovaSenha').value;
+            if (novaSenha) {
+                payload.nova_senha = novaSenha;
+            }
+
+            try {
+                const response = await fetch(`/api/gestao_usuarios/usuarios/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.erro || result.message || `Erro ${response.status}`);
+                showMessage(result.message, 'success');
+                editUserSection.style.display = 'none';
+                document.getElementById('create-user-section').style.display = 'block';
+                editUserForm.reset();
+                toggleEditPodeCriarCheckbox();
+                fetchUsers();
+            } catch (error) {
+                showMessage(`Erro ao alterar usuário: ${error.message}`, 'error');
+            }
+        });
+
+        fetchUsers();
+    </script>
+</body>
+</html>
